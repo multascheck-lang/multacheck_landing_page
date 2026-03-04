@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultaCheck — ¿Tu multa es legal?</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f4f0;
+    --green: #22c55e;
+    --green-dark: #16a34a;
+    --gold: #f59e0b;
+    --gray: #141414;
+    --gray2: #1e1e1e;
+    --muted: #666;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+  h1,h2,h3,h4 { font-family:'Syne',sans-serif; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 40px;
+    background:rgba(10,10,10,0.88); backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:21px; color:var(--white); text-decoration:none; }
+  .logo span { color:var(--green); }
+  .nav-btn {
+    background:var(--green); color:var(--black); padding:11px 22px;
+    border-radius:100px; font-weight:700; font-size:14px; text-decoration:none;
+    transition:all .2s;
+  }
+  .nav-btn:hover { background:var(--green-dark); transform:scale(1.03); }
+
+  /* HERO */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; text-align:center;
+    padding:130px 24px 90px; position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:-150px; left:50%; transform:translateX(-50%);
+    width:900px; height:900px;
+    background:radial-gradient(circle, rgba(34,197,94,0.1) 0%, transparent 65%);
+    pointer-events:none;
+  }
+  .badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.25);
+    color:var(--green); padding:8px 18px; border-radius:100px;
+    font-size:13px; font-weight:500; margin-bottom:36px;
+    animation:fadeUp .6s ease both;
+  }
+  .badge-dot { width:7px; height:7px; background:var(--green); border-radius:50%; animation:blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+
+  .hero h1 {
+    font-size:clamp(52px,9vw,104px); font-weight:800;
+    line-height:.95; letter-spacing:-4px; margin-bottom:28px;
+    animation:fadeUp .7s ease .1s both;
+  }
+  .hero h1 em { color:var(--green); font-style:normal; }
+  .hero-sub {
+    font-size:clamp(17px,2.2vw,21px); color:var(--muted);
+    max-width:520px; line-height:1.65; margin-bottom:52px;
+    font-weight:300; animation:fadeUp .7s ease .2s both;
+  }
+  .hero-btns {
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+    animation:fadeUp .7s ease .3s both;
+  }
+  .btn-green {
+    background:var(--green); color:var(--black); padding:18px 38px;
+    border-radius:100px; font-weight:700; font-size:16px; text-decoration:none;
+    transition:all .25s; display:inline-flex; align-items:center; gap:9px;
+  }
+  .btn-green:hover { background:var(--green-dark); transform:translateY(-3px); box-shadow:0 24px 48px rgba(34,197,94,.28); }
+  .btn-ghost {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+    color:var(--white); padding:18px 36px; border-radius:100px;
+    font-weight:500; font-size:16px; text-decoration:none; transition:all .25s;
+  }
+  .btn-ghost:hover { background:rgba(255,255,255,.09); transform:translateY(-3px); }
+
+  .hero-stats {
+    display:flex; gap:56px; margin-top:88px; flex-wrap:wrap; justify-content:center;
+    animation:fadeUp .7s ease .4s both;
+  }
+  .stat-num { font-family:'Syne',sans-serif; font-size:38px; font-weight:800; color:var(--green); }
+  .stat-lbl { font-size:13px; color:var(--muted); margin-top:4px; }
+
+  /* SECTIONS BASE */
+  .section-tag {
+    font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    color:var(--green); margin-bottom:18px;
+  }
+
+  /* PROBLEMA */
+  .problem { padding:110px 24px; max-width:960px; margin:0 auto; text-align:center; }
+  .problem h2 { font-size:clamp(34px,5vw,60px); font-weight:800; letter-spacing:-2px; line-height:1.05; margin-bottom:20px; }
+  .problem > p { font-size:18px; color:var(--muted); max-width:600px; margin:0 auto 56px; line-height:1.7; }
+  .cards4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; text-align:left; }
+  .card {
+    background:var(--gray); border:1px solid rgba(255,255,255,.06);
+    border-radius:22px; padding:30px 26px; transition:all .3s;
+  }
+  .card:hover { border-color:rgba(34,197,94,.3); transform:translateY(-5px); }
+  .card-icon { font-size:30px; margin-bottom:14px; }
+  .card h3 { font-size:17px; font-weight:700; margin-bottom:8px; }
+  .card p { font-size:14px; color:var(--muted); line-height:1.65; }
+
+  /* HOW */
+  .how { padding:110px 24px; background:var(--gray); }
+  .how-inner { max-width:1020px; margin:0 auto; text-align:center; }
+  .how h2 { font-size:clamp(34px,5vw,60px); font-weight:800; letter-spacing:-2px; margin-bottom:14px; }
+  .how > .how-inner > p { color:var(--muted); font-size:18px; margin-bottom:64px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
+  .step {
+    background:var(--black); border:1px solid rgba(255,255,255,.07);
+    border-radius:26px; padding:38px 28px; text-align:left;
+    transition:all .3s; position:relative; overflow:hidden;
+  }
+  .step::after {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:var(--green); transform:scaleX(0); transition:transform .35s; transform-origin:left;
+  }
+  .step:hover::after { transform:scaleX(1); }
+  .step:hover { transform:translateY(-5px); border-color:rgba(34,197,94,.18); }
+  .step-n { font-family:'Syne',sans-serif; font-size:52px; font-weight:800; color:rgba(34,197,94,.12); line-height:1; margin-bottom:14px; }
+  .step-ico { font-size:28px; margin-bottom:16px; }
+  .step h3 { font-size:18px; font-weight:700; margin-bottom:10px; }
+  .step p { font-size:14px; color:var(--muted); line-height:1.65; }
+
+  /* TESTIMONIOS */
+  .testi { padding:110px 24px; max-width:1120px; margin:0 auto; }
+  .testi-head { text-align:center; margin-bottom:64px; }
+  .testi-head h2 { font-size:clamp(34px,5vw,60px); font-weight:800; letter-spacing:-2px; margin-bottom:14px; }
+  .testi-head p { color:var(--muted); font-size:18px; }
+  .testi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+  .tcard {
+    background:var(--gray); border:1px solid rgba(255,255,255,.06);
+    border-radius:24px; padding:32px; transition:all .3s; position:relative;
+  }
+  .tcard:hover { border-color:rgba(34,197,94,.22); transform:translateY(-4px); }
+  .tcard-badge {
+    position:absolute; top:22px; right:22px;
+    background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.28);
+    color:var(--green); padding:5px 12px; border-radius:100px; font-size:12px; font-weight:600;
+  }
+  .stars { color:var(--gold); font-size:17px; letter-spacing:2px; margin-bottom:16px; }
+  .ttext { font-size:15px; line-height:1.75; color:#bbb; margin-bottom:24px; font-style:italic; }
+  .tauthor { display:flex; align-items:center; gap:13px; }
+  .avatar {
+    width:44px; height:44px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:15px; flex-shrink:0;
+  }
+  .aname { font-weight:600; font-size:15px; }
+  .adetail { font-size:13px; color:var(--muted); margin-top:2px; }
+
+  /* PRECIOS */
+  .pricing { padding:110px 24px; background:var(--gray); }
+  .pricing-inner { max-width:920px; margin:0 auto; text-align:center; }
+  .pricing h2 { font-size:clamp(34px,5vw,60px); font-weight:800; letter-spacing:-2px; margin-bottom:14px; }
+  .pricing > .pricing-inner > p { color:var(--muted); font-size:18px; margin-bottom:64px; }
+  .pcards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; align-items:start; }
+  .pcard {
+    background:var(--black); border:1px solid rgba(255,255,255,.08);
+    border-radius:26px; padding:36px 28px; text-align:left; transition:all .3s;
+  }
+  .pcard:hover { transform:translateY(-4px); }
+  .pcard.hot { border-color:var(--green); background:rgba(34,197,94,.03); position:relative; }
+  .hot-tag {
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+    background:var(--green); color:var(--black); padding:5px 20px;
+    border-radius:100px; font-size:12px; font-weight:800; white-space:nowrap;
+  }
+  .plabel { font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+  .pamount { font-family:'Syne',sans-serif; font-size:44px; font-weight:800; line-height:1; margin-bottom:4px; }
+  .pamount.g { color:var(--green); }
+  .pold { font-size:13px; color:var(--muted); text-decoration:line-through; margin-bottom:20px; }
+  .pname { font-size:20px; font-weight:700; margin-bottom:8px; }
+  .pdesc { font-size:14px; color:var(--muted); line-height:1.6; margin-bottom:28px; }
+  .pfeats { list-style:none; margin-bottom:32px; }
+  .pfeats li {
+    font-size:14px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.05);
+    display:flex; align-items:center; gap:10px; color:#bbb;
+  }
+  .pfeats li::before { content:'✓'; color:var(--green); font-weight:700; flex-shrink:0; }
+  .pbtn {
+    display:block; text-align:center; padding:16px; border-radius:100px;
+    font-weight:700; font-size:15px; text-decoration:none; transition:all .2s;
+  }
+  .pbtn-out { border:2px solid rgba(255,255,255,.14); color:var(--white); }
+  .pbtn-out:hover { border-color:rgba(255,255,255,.4); }
+  .pbtn-g { background:var(--green); color:var(--black); }
+  .pbtn-g:hover { background:var(--green-dark); transform:scale(1.02); }
+
+  /* GARANTIA */
+  .guar { padding:80px 24px; max-width:680px; margin:0 auto; }
+  .guar-box {
+    background:rgba(34,197,94,.05); border:1px solid rgba(34,197,94,.18);
+    border-radius:28px; padding:52px 44px; text-align:center;
+  }
+  .guar-box .gico { font-size:48px; margin-bottom:20px; }
+  .guar-box h2 { font-size:30px; font-weight:800; letter-spacing:-1px; margin-bottom:16px; }
+  .guar-box p { color:var(--muted); font-size:16px; line-height:1.75; }
+
+  /* FAQ */
+  .faq { padding:110px 24px; background:var(--gray); }
+  .faq-inner { max-width:720px; margin:0 auto; }
+  .faq-hd { text-align:center; margin-bottom:56px; }
+  .faq-hd h2 { font-size:clamp(32px,5vw,52px); font-weight:800; letter-spacing:-2px; margin-bottom:14px; }
+  .fitem { border-bottom:1px solid rgba(255,255,255,.07); padding:24px 0; cursor:pointer; }
+  .fq {
+    font-family:'Syne',sans-serif; font-size:17px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:center; gap:16px; user-select:none;
+  }
+  .fq:hover { color:var(--green); }
+  .ftog { font-size:22px; color:var(--green); flex-shrink:0; transition:transform .3s; }
+  .fans {
+    font-size:15px; color:var(--muted); line-height:1.75;
+    max-height:0; overflow:hidden; transition:max-height .4s ease, padding .3s;
+  }
+  .fitem.open .fans { max-height:300px; padding-top:16px; }
+  .fitem.open .ftog { transform:rotate(45deg); }
+
+  /* FINAL CTA */
+  .fcta { padding:130px 24px; text-align:center; position:relative; overflow:hidden; }
+  .fcta::before {
+    content:''; position:absolute; bottom:-250px; left:50%; transform:translateX(-50%);
+    width:700px; height:700px;
+    background:radial-gradient(circle, rgba(34,197,94,.09) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .fcta h2 { font-size:clamp(44px,7vw,88px); font-weight:800; letter-spacing:-4px; line-height:.95; margin-bottom:24px; }
+  .fcta p { color:var(--muted); font-size:18px; margin-bottom:48px; max-width:480px; margin-left:auto; margin-right:auto; }
+
+  /* PRIVACY */
+  .priv { padding:110px 24px; max-width:720px; margin:0 auto; }
+  .priv h2 { font-size:42px; font-weight:800; letter-spacing:-2px; margin-bottom:8px; }
+  .priv-date { color:var(--muted); font-size:14px; margin-bottom:48px; }
+  .priv h3 { font-size:17px; font-weight:700; margin:36px 0 10px; color:var(--green); }
+  .priv p, .priv li { font-size:15px; color:#999; line-height:1.8; }
+  .priv ul { padding-left:18px; margin-top:8px; }
+  .priv li { margin-bottom:6px; }
+
+  /* FOOTER */
+  footer { border-top:1px solid rgba(255,255,255,.06); padding:64px 24px 36px; }
+  .foot { max-width:1020px; margin:0 auto; }
+  .foot-top { display:flex; justify-content:space-between; align-items:flex-start; gap:40px; flex-wrap:wrap; margin-bottom:52px; }
+  .foot-brand h3 { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; margin-bottom:8px; }
+  .foot-brand h3 span { color:var(--green); }
+  .foot-brand p { font-size:14px; color:var(--muted); max-width:240px; line-height:1.65; }
+  .socials { display:flex; gap:10px; margin-top:20px; }
+  .soc {
+    width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09);
+    display:flex; align-items:center; justify-content:center;
+    text-decoration:none; font-size:16px; transition:all .2s;
+  }
+  .soc:hover { background:var(--green); border-color:var(--green); }
+  .foot-col h4 { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+  .foot-col a { display:block; color:#999; font-size:14px; text-decoration:none; margin-bottom:10px; transition:color .2s; }
+  .foot-col a:hover { color:var(--green); }
+  .foot-bot { border-top:1px solid rgba(255,255,255,.05); padding-top:24px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .foot-bot p, .foot-bot a { font-size:13px; color:var(--muted); text-decoration:none; }
+  .foot-bot a:hover { color:var(--green); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.on { opacity:1; transform:translateY(0); }
+
+  @media(max-width:640px) {
+    nav { padding:16px 20px; }
+    .hero h1 { letter-spacing:-2px; }
+    .hero-stats { gap:28px; }
+    .foot-top { flex-direction:column; }
+    .guar-box { padding:36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">⚖️ Multa<span>Check</span></a>
+  <a href="https://play.google.com/store" class="nav-btn">Descargar gratis →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge"><span class="badge-dot"></span> Disponible en Android · Colombia</div>
+  <h1>Tu multa puede<br>ser <em>ilegal</em></h1>
+  <p class="hero-sub">Descubre en 2 minutos si tu fotomulta o comparendo tiene irregularidades legales — y genera el documento para impugnarla.</p>
+  <div class="hero-btns">
+    <a href="https://play.google.com/store" class="btn-green">📱 Descargar gratis</a>
+    <a href="#como-funciona" class="btn-ghost">¿Cómo funciona?</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">7M+</div>
+      <div class="stat-lbl">Multas al año en Colombia</div>
+    </div>
+    <div>
+      <div class="stat-num">2 min</div>
+      <div class="stat-lbl">Para evaluar tu caso</div>
+    </div>
+    <div>
+      <div class="stat-num">$50K</div>
+      <div class="stat-lbl">vs $200K con abogado</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section class="problem">
+  <p class="section-tag reveal">El problema</p>
+  <h2 class="reveal">Millones de multas<br>con irregularidades</h2>
+  <p class="reveal">Muchos comparendos y fotomultas en Colombia se emiten con errores de procedimiento que los hacen impugnables. El problema es que nadie te lo dice — y terminas pagando sin saber que no debías.</p>
+  <div class="cards4">
+    <div class="card reveal">
+      <div class="card-icon">📷</div>
+      <h3>Cámaras sin permiso</h3>
+      <p>Muchas fotomultas son de cámaras sin autorización del Ministerio de Transporte. Multa completamente nula.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">⏰</div>
+      <h3>Notificaciones tardías</h3>
+      <p>Si no te avisaron dentro del plazo legal de 13 días hábiles, el proceso tiene una irregularidad grave.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">📅</div>
+      <h3>Multas prescritas</h3>
+      <p>Comparendos de más de 1 año sin audiencia, o más de 3 años sin embargo, pueden estar caducados o prescritos.</p>
+    </div>
+    <div class="card reveal">
+      <div class="card-icon">👤</div>
+      <h3>Conductor no identificado</h3>
+      <p>Si la foto no muestra claramente quién maneja, no te pueden multar a ti como propietario del vehículo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="how" id="como-funciona">
+  <div class="how-inner">
+    <p class="section-tag reveal">Simple y rápido</p>
+    <h2 class="reveal">Funciona en 3 pasos</h2>
+    <p class="reveal" style="color:var(--muted);font-size:18px;margin-bottom:64px;">Sin abogados, sin citas, sin filas. Todo desde tu celular.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-n">01</div>
+        <div class="step-ico">📋</div>
+        <h3>Responde preguntas</h3>
+        <p>Sí o No a preguntas simples sobre tu multa. Sin términos legales complicados. En menos de 2 minutos.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">02</div>
+        <div class="step-ico">🔍</div>
+        <h3>Evaluamos tu caso</h3>
+        <p>Nuestra lógica basada en el Código Nacional de Tránsito detecta si hay irregularidades legales reales.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">03</div>
+        <div class="step-ico">📄</div>
+        <h3>Recibe tu documento</h3>
+        <p>Descarga tu Derecho de Petición o Acción de Tutela personalizada, lista para presentar ante la entidad.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="testi" id="testimonios">
+  <div class="testi-head">
+    <p class="section-tag reveal">Resultados reales</p>
+    <h2 class="reveal">Colombianos que ya<br>impugnaron su multa</h2>
+    <p class="reveal">Historias de usuarios que usaron MultaCheck para defenderse.</p>
+  </div>
+  <div class="testi-grid">
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Multa revocada</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"Tenía una fotomulta de $478.000 de hace dos años que ni sabía que podía impugnar. La app me dijo en 5 minutos que estaba vencida por caducidad y generó el documento. La Secretaría la anuló en 8 días."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#000;">CR</div>
+        <div>
+          <div class="aname">Carlos Rodríguez</div>
+          <div class="adetail">Bogotá · Fotomulta $478.000</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Proceso suspendido</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"El agente me puso un comparendo pero no me dejó copia en el momento. MultaCheck me explicó que eso es ilegal y generó el derecho de petición. La Secretaría de Movilidad de Medellín lo suspendió a la semana."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;">LG</div>
+        <div>
+          <div class="aname">Laura Gómez</div>
+          <div class="adetail">Medellín · Comparendo de agente</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Tutela aceptada</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"La cámara que me multó no aparecía en el listado del Ministerio. Generé la tutela con la app y el juzgado la aceptó en 3 días. $395.000 ahorrados por $30.000 que pagué. Esto debería ser ley obligatoria."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;">AM</div>
+        <div>
+          <div class="aname">Andrés Morales</div>
+          <div class="adetail">Cali · Cámara no autorizada</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Multa prescrita</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"Un comparendo del 2019 me apareció en el SIMIT pero nunca me llamaron a audiencia. La app detectó que ya prescribió. Generé el documento en 5 minutos, lo envié por correo y en 15 días lo archivaron."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;">MP</div>
+        <div>
+          <div class="aname">María Paula Vargas</div>
+          <div class="adetail">Bucaramanga · Comparendo 2019</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Proceso anulado</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"Mi apellido estaba mal escrito en el comparendo. Nunca pensé que eso fuera suficiente para impugnarlo pero sí lo es. El documento fue contundente y la Secretaría no tuvo argumentos para rebatirlo."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;">JH</div>
+        <div>
+          <div class="aname">Julián Herrera</div>
+          <div class="adetail">Barranquilla · Error en datos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tcard reveal">
+      <div class="tcard-badge">✓ Multa revocada</div>
+      <div class="stars">★★★★★</div>
+      <p class="ttext">"Compré el paquete completo. La petición fue suficiente — respondieron en 12 días que la fotomulta fue tomada por una cámara sin señalización previa. Lo que me costó la app fue nada comparado con lo que me ahorraron."</p>
+      <div class="tauthor">
+        <div class="avatar" style="background:linear-gradient(135deg,#22c55e,#059669);color:#000;">SC</div>
+        <div>
+          <div class="aname">Sofía Castro</div>
+          <div class="adetail">Bogotá · Sin señalización previa</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PRECIOS -->
+<section class="pricing" id="precios">
+  <div class="pricing-inner">
+    <p class="section-tag reveal">Transparente</p>
+    <h2 class="reveal">Un solo pago, sin sorpresas</h2>
+    <p class="reveal" style="color:var(--muted);font-size:18px;margin-bottom:64px;">Sin suscripciones. Sin letra pequeña. Pagas una vez y el documento es tuyo.</p>
+    <div class="pcards">
+
+      <div class="pcard reveal">
+        <div class="plabel">Documento individual</div>
+        <div class="pamount">$30.000</div>
+        <div class="pname">Derecho de Petición</div>
+        <div class="pdesc">El primer paso legal para impugnar tu multa ante la entidad emisora.</div>
+        <ul class="pfeats">
+          <li>Documento personalizado con tus datos</li>
+          <li>Fundamentos jurídicos completos</li>
+          <li>Guía de presentación paso a paso</li>
+          <li>Pago seguro con Wompi / PSE</li>
+        </ul>
+        <a href="https://play.google.com/store" class="pbtn pbtn-out">Empezar →</a>
+      </div>
+
+      <div class="pcard hot reveal">
+        <div class="hot-tag">⭐ Más popular</div>
+        <div class="plabel">Paquete completo</div>
+        <div class="pamount g">$50.000</div>
+        <div class="pold">Valor separado: $60.000</div>
+        <div class="pname">Petición + Tutela</div>
+        <div class="pdesc">Cubre todo el proceso legal de principio a fin. La opción más completa y efectiva.</div>
+        <ul class="pfeats">
+          <li>Derecho de Petición completo</li>
+          <li>Acción de Tutela incluida</li>
+          <li>Instrucciones de desacato</li>
+          <li>Guía detallada de radicación</li>
+          <li>Wompi / PSE / Nequi / Tarjetas</li>
+        </ul>
+        <a href="https://play.google.com/store" class="pbtn pbtn-g">Obtener paquete →</a>
+      </div>
+
+      <div class="pcard reveal">
+        <div class="plabel">Documento individual</div>
+        <div class="pamount">$30.000</div>
+        <div class="pname">Acción de Tutela</div>
+        <div class="pdesc">Cuando la entidad no responde o rechaza tu petición. Presentable ante cualquier juzgado.</div>
+        <ul class="pfeats">
+          <li>Tutela con argumentos sólidos</li>
+          <li>Perjuicio irremediable argumentado</li>
+          <li>Guía para radicar en juzgado</li>
+          <li>Pago seguro con Wompi / PSE</li>
+        </ul>
+        <a href="https://play.google.com/store" class="pbtn pbtn-out">Empezar →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- GARANTÍA -->
+<section class="guar">
+  <div class="guar-box reveal">
+    <div class="gico">🛡️</div>
+    <h2>Basado en leyes colombianas reales</h2>
+    <p>Todos los documentos están fundamentados en el Código Nacional de Tránsito (Ley 769 de 2002), la Ley 1843 de 2017 sobre fotomultas, y la jurisprudencia de la Corte Constitucional colombiana. No es magia — es la ley aplicada correctamente.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="faq-inner">
+    <div class="faq-hd">
+      <p class="section-tag reveal">Dudas frecuentes</p>
+      <h2 class="reveal">Resolvemos tus preguntas</h2>
+    </div>
+
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿Garantizan que la multa se anule? <span class="ftog">+</span></div>
+      <div class="fans">No garantizamos resultados — ningún servicio legal puede hacerlo honestamente. Lo que garantizamos es que los documentos están basados en leyes reales y son argumentos jurídicos legítimos. El resultado depende de cada caso y la entidad. Este servicio no reemplaza asesoría jurídica profesional.</div>
+    </div>
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿Qué pasa si mi multa no es impugnable? <span class="ftog">+</span></div>
+      <div class="fans">Si el sistema determina que no hay irregularidades evidentes, te lo decimos honestamente y no te cobramos nada. Solo pagas si hay motivos reales para impugnar y decides generar el documento.</div>
+    </div>
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿En qué ciudades funciona? <span class="ftog">+</span></div>
+      <div class="fans">MultaCheck funciona en todo Colombia — Bogotá, Medellín, Cali, Barranquilla, Bucaramanga y cualquier municipio. Los documentos se pueden presentar ante cualquier Secretaría de Movilidad o juzgado del país.</div>
+    </div>
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿Cómo pago? ¿Es seguro? <span class="ftog">+</span></div>
+      <div class="fans">Los pagos se procesan a través de Wompi, el procesador de pagos oficial de Bancolombia. Aceptamos PSE, tarjetas de crédito, débito y Nequi. Toda la información se transmite con encriptación SSL.</div>
+    </div>
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿Cuánto tiempo tengo para presentar el documento? <span class="ftog">+</span></div>
+      <div class="fans">Una vez generado, el documento es tuyo indefinidamente. Te recomendamos presentarlo lo antes posible ya que los plazos legales son importantes en el proceso de impugnación.</div>
+    </div>
+    <div class="fitem reveal" onclick="toggleFaq(this)">
+      <div class="fq">¿Mis datos personales están seguros? <span class="ftog">+</span></div>
+      <div class="fans">Tus datos solo se usan para generar tu documento legal. No los vendemos ni compartimos con terceros. Consulta nuestra política de privacidad completa al final de esta página.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="fcta">
+  <p class="section-tag reveal">¿Listo para defenderte?</p>
+  <h2 class="reveal">Tu multa no<br>se paga sola.</h2>
+  <p class="reveal">Evalúa tu caso en 2 minutos. Gratis. Solo pagas si decides generar el documento.</p>
+  <a href="https://play.google.com/store" class="btn-green reveal" style="display:inline-flex;margin:0 auto;">📱 Descargar gratis en Android →</a>
+</section>
+
+<!-- POLÍTICA -->
+<section class="priv" id="privacidad">
+  <h2>Política de Privacidad</h2>
+  <p class="priv-date">Última actualización: marzo de 2026</p>
+  <h3>1. Información que recopilamos</h3>
+  <p>MultaCheck recopila la siguiente información cuando usas la aplicación:</p>
+  <ul>
+    <li>Nombre completo</li>
+    <li>Número de cédula de ciudadanía</li>
+    <li>Correo electrónico</li>
+    <li>Número de teléfono</li>
+    <li>Dirección de residencia y ciudad</li>
+    <li>Número de comparendo o fotomulta</li>
+  </ul>
+  <h3>2. Cómo usamos tu información</h3>
+  <p>La información se usa exclusivamente para generar tus documentos legales personalizados y procesar pagos a través de Wompi.</p>
+  <h3>3. Firebase Analytics</h3>
+  <p>Usamos Firebase Analytics de Google para analizar el uso de la app de forma anónima. No recopila información personal identificable.</p>
+  <h3>4. Compartir información</h3>
+  <p>No vendemos ni compartimos tu información con terceros, excepto con Wompi para procesar pagos de forma segura.</p>
+  <h3>5. Seguridad</h3>
+  <p>Tus datos son transmitidos con encriptación SSL. No almacenamos datos sensibles más allá de lo necesario para generar tu documento.</p>
+  <h3>6. Tus derechos</h3>
+  <p>Puedes solicitar la eliminación de tus datos escribiendo a: multacheck@gmail.com</p>
+  <h3>7. Contacto</h3>
+  <p>Preguntas sobre esta política: multacheck@gmail.com</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <h3>⚖️ Multa<span>Check</span></h3>
+        <p>Herramienta legal para colombianos que quieren defender sus derechos frente a multas de tránsito.</p>
+        <div class="socials">
+          <a href="https://instagram.com/multacheck" class="soc" title="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="https://tiktok.com/@multacheck" class="soc" title="TikTok">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.27 8.27 0 004.83 1.55V6.85a4.85 4.85 0 01-1.06-.16z"/></svg>
+          </a>
+          <a href="https://facebook.com/multacheck" class="soc" title="Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h4>App</h4>
+        <a href="https://play.google.com/store">Descargar Android</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#precios">Precios</a>
+        <a href="#testimonios">Casos de éxito</a>
+      </div>
+      <div class="foot-col">
+        <h4>Legal</h4>
+        <a href="#privacidad">Política de privacidad</a>
+        <a href="#faq">Preguntas frecuentes</a>
+        <a href="mailto:multacheck@gmail.com">Contacto</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <p>© 2026 MultaCheck. Todos los derechos reservados.</p>
+      <a href="#privacidad">Política de privacidad</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) setTimeout(() => e.target.classList.add('on'), i * 70);
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  function toggleFaq(item) {
+    const open = item.classList.contains('open');
+    document.querySelectorAll('.fitem').forEach(i => i.classList.remove('open'));
+    if (!open) item.classList.add('open');
+  }
+</script>
+</body>
+</html>
